@@ -46,7 +46,6 @@ const readAllDogs = (req, res, callback) => {
   Dog.find(callback).lean();
 };
 
-
 // function to find a specific cat on request.
 // Express functions always receive the request and the response.
 const readDog = (req, res) => {
@@ -106,15 +105,14 @@ const hostPage2 = (req, res) => {
 // controller functions in Express receive the full HTTP request
 // and a pre-filled out response object to send
 const hostPage3 = (req, res) => {
-    // res.render takes a name of a page to render.
-    // These must be in the folder you specified as views in your main app.js file
-    // Additionally, you don't need .jade because you registered the file type
-    // in the app.js as jade. Calling res.render('index')
-    // actually calls index.jade. A second parameter of JSON can be passed
-    // into the jade to be used as variables with #{varName}
+  // res.render takes a name of a page to render.
+  // These must be in the folder you specified as views in your main app.js file
+  // Additionally, you don't need .jade because you registered the file type
+  // in the app.js as jade. Calling res.render('index')
+  // actually calls index.jade. A second parameter of JSON can be passed
+  // into the jade to be used as variables with #{varName}
   res.render('page3');
 };
-
 
 // function to handle requests to the page4 page
 // controller functions in Express receive the full HTTP request
@@ -166,7 +164,7 @@ const setName = (req, res) => {
   const dogData = {
     name,
     breed: req.body.breed,
-    age: req.body.age
+    age: req.body.age,
   };
 
   // create a new object of CatModel with the object to save
@@ -189,6 +187,35 @@ const setName = (req, res) => {
   return res;
 };
 
+// function to handle a request to update the last added object
+// this PURELY exists to show you how to update a model object
+// Normally for an update, you'd get data from the client,
+// search for an object, update the object and put it back
+// We will skip straight to updating an object
+// (that we stored as last added) and putting it back
+const updateLast = (req, res) => {
+  // Your model is JSON, so just change a value in it.
+  // This is the benefit of ORM (mongoose) and/or object documents (Mongo NoSQL)
+  // You can treat objects just like that - objects.
+  // Normally you'd find a specific object, but we will only
+  // give the user the ability to update our last object
+  lastAdded.age++;
+
+  // once you change all the object properties you want,
+  // then just call the Model object's save function
+  // create a new save promise for the database
+  const savePromise = lastAdded.save();
+
+  // send back the name as a success for now
+  savePromise.then(() => res.json({
+    name: lastAdded.name,
+    breed: lastAdded.breed,
+    age: lastAdded.age,
+  }));
+
+  // if save error, just return an error for now
+  savePromise.catch((err) => res.status(500).json({ err }));
+};
 
 // function to handle requests search for a name and return the object
 // controller functions in Express receive the full HTTP request
@@ -226,34 +253,8 @@ const searchName = (req, res) => {
 
     // if a match, send the match back
     lastAdded = doc;
-    return updateLast(req,res);
+    return updateLast(req, res);
   });
-};
-
-// function to handle a request to update the last added object
-// this PURELY exists to show you how to update a model object
-// Normally for an update, you'd get data from the client,
-// search for an object, update the object and put it back
-// We will skip straight to updating an object
-// (that we stored as last added) and putting it back
-const updateLast = (req, res) => {
-  // Your model is JSON, so just change a value in it.
-  // This is the benefit of ORM (mongoose) and/or object documents (Mongo NoSQL)
-  // You can treat objects just like that - objects.
-  // Normally you'd find a specific object, but we will only
-  // give the user the ability to update our last object
-  lastAdded.age++;
-
-  // once you change all the object properties you want,
-  // then just call the Model object's save function
-  // create a new save promise for the database
-  const savePromise = lastAdded.save();
-
-  // send back the name as a success for now
-  savePromise.then(() => res.json({ name: lastAdded.name, breed: lastAdded.breed, age: lastAdded.age }));
-
-  // if save error, just return an error for now
-  savePromise.catch((err) => res.status(500).json({ err }));
 };
 
 // function to handle a request to any non-real resources (404)
